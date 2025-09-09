@@ -1,0 +1,92 @@
+# 📂 1_hello-world-basic-api
+
+## 🛠 Dependencies
+- Python 3.10
+- FastAPI
+- Uvicorn
+
+Installed with:
+    pip install fastapi uvicorn
+
+---
+
+## 🚀 Commands to Start Server
+1. Go to repo root:
+    cd "C:\Self skills\FastAPI Repo"
+
+2. Activate virtual environment:
+    venv\Scripts\activate
+
+3. Go into project folder:
+    cd 1_hello-world-basic-api
+
+4. Start FastAPI server:
+    uvicorn main:app --reload
+
+5. Open in browser:
+    http://127.0.0.1:8000/
+    http://127.0.0.1:8000/docs  (Swagger UI)
+    http://127.0.0.1:8000/redoc (ReDoc UI)
+
+6. Every time you install a new dependency in future folders, update requirements.txt with:
+
+   pip freeze > requirements.txt
+
+
+---
+
+## 🎯 Problem Statement
+Build a **basic FastAPI app** with:
+- A root route (`/`)
+- A static route (`/hello`)
+- A dynamic route with path & query params (`/items/{item_id}?q=...`)
+
+---
+
+## ✅ Tasks Done
+- Installed FastAPI & Uvicorn inside venv
+- Created `main.py` with 3 endpoints
+- Ran server with `uvicorn`
+- Tested endpoints in browser and Swagger docs
+- Saw FastAPI auto validation in action
+
+---
+
+## 📘 What I Learned
+- How to create and activate a virtual environment  
+- How to install FastAPI + Uvicorn  
+- How `@app.get()` decorators map HTTP routes  
+- FastAPI auto-converts Python dict → JSON  
+- Path params (`{item_id}`) vs Query params (`?q=value`)  
+- FastAPI auto-validates types (int vs str errors)  
+- Swagger docs are auto-generated and interactive  
+
+---
+
+## ✍️ Personal Notes
+(Add your own thoughts here, for example:)
+- Swagger UI feels like Postman but built-in  
+- Path params are strict about type hints  
+- Validation errors are very clear and helpful  
+
+---
+
+## ⚠️ Mistakes & Potential Mistakes
+- Tried running `python3.10` (Linux-style) → ❌ not working on Windows  
+- Forgot to `activate` venv before `uvicorn` → ❌ "module not found"  
+- Naming mistake: file must be `main.py` if running `uvicorn main:app`  
+- Using wrong Python version (3.13 might break some libs)  
+
+---
+
+## 📌 Do's and Don'ts
+### ✅ Do's
+- Always activate venv before running server  
+- Use type hints (`int`, `str`) → FastAPI validates automatically  
+- Check Swagger docs for quick testing  
+- Add `venv/` to `.gitignore`  
+
+### ❌ Don'ts
+- Don’t create separate venv for each folder (too heavy)  
+- Don’t name your file `fastapi.py` (conflicts with package import)  
+- Don’t skip reading error messages (they are very descriptive)  
