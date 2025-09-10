@@ -10,7 +10,7 @@ Installed with:
 
 ---
 
-## 🚀 Commands to Start Server
+## Commands to Start Server
 1. Go to repo root:
     cd "C:\Self skills\FastAPI Repo"
 
@@ -35,7 +35,7 @@ Installed with:
 
 ---
 
-## 🎯 Problem Statement
+## Problem Statement
 Build a **basic FastAPI app** with:
 - A root route (`/`)
 - A static route (`/hello`)
@@ -43,7 +43,7 @@ Build a **basic FastAPI app** with:
 
 ---
 
-## ✅ Tasks Done
+## Tasks Done
 - Installed FastAPI & Uvicorn inside venv
 - Created `main.py` with 3 endpoints
 - Ran server with `uvicorn`
@@ -52,7 +52,7 @@ Build a **basic FastAPI app** with:
 
 ---
 
-## 📘 What I Learned
+## What I Learned
 - How to create and activate a virtual environment  
 - How to install FastAPI + Uvicorn  
 - How `@app.get()` decorators map HTTP routes  
@@ -63,7 +63,7 @@ Build a **basic FastAPI app** with:
 
 ---
 
-## ✍️ Personal Notes
+## Personal Notes
 (Add your own thoughts here, for example:)
 - Swagger UI feels like Postman but built-in  
 - Path params are strict about type hints  
