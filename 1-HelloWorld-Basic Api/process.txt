@@ -1,0 +1,157 @@
+Folder 1: Hello World Basic API — process.txt
+-----------------------------------------------
+
+Starting a FastAPI App
+-------------------------
+from fastapi import FastAPI
+
+app = FastAPI()
+
+# from fastapi import FastAPI → imports the main FastAPI class.
+# app = FastAPI() → creates the app instance.
+# All routes (endpoints) attach to this app.
+# Similar to Flask(__name__) if you’ve used Flask.
+
+
+Routes & Decorators
+-----------------------
+@app.get("/")
+def home_route():
+    return {"message": "Hello World"}
+
+# @app.get("/") → GET request for root (/).
+# You can also use:
+# @app.post
+# @app.put
+# @app.delete
+
+# The decorated function runs when that route is requested.
+# Function return value is auto-converted to JSON.
+
+
+Path Parameters (Compulsory fields)
+-------------------------------------
+# Defined inside {} in the route path.
+
+@app.get("/cats/{breed}")
+def cats(breed: str):
+    return {"breed": breed}
+
+# {breed} → path parameter.
+# breed: str → enforces type = string.
+
+# Must be present in URL:
+# /cats/persian ✅
+# /cats ❌ (error: Missing parameter)
+
+
+Query Parameters (Optional fields)
+------------------------------------
+# Defined after ? in the URL, not in the route path.
+
+@app.get("/kittens/{breed_type}")
+def cats(breed_type: str, color: str = "orange", age: int | None = None):
+    return {
+        "breed": breed_type,
+        "color": color,
+        "age": age
+    }
+
+# breed_type → path param (required).
+# color: str = "orange" → query param with default.
+# age: int | None = None → query param, optional.
+
+# Example URLs:
+# /kittens/persian → { "breed": "persian", "color": "orange", "age": null }
+# /kittens/persian?color=white&age=2 → { "breed": "persian", "color": "white", "age": 2 }
+
+
+Type Hints & Validation
+--------------------------
+# FastAPI auto-validates input using type hints.
+# If type doesn’t match, 422 error (Unprocessable Entity) is returned.
+
+# Example:
+# age: int
+# /kittens/persian?age=3 ✅
+# /kittens/persian?age=abc ❌ (422 error)
+
+# Conversion behavior:
+# If color: str, /kittens/persian?color=7 → "7" (number → string works).
+# If age: int, /kittens/persian?age=abc → error (string → int not possible).
+
+
+Default Values
+-----------------
+# Path parameters cannot have defaults (always required).
+# Query parameters can have defaults:
+
+# color: str = "orange"
+# age: int | None = None
+
+
+Regex Constraints (with Pydantic)
+-----------------------------------
+# You can restrict inputs using regex patterns.
+
+from pydantic import constr
+
+AuthorType = constr(pattern="^[A-Za-z]+$")  # only letters
+
+@app.get("/route5/{book_name}/{author}")
+def fn5(book_name: str, author: AuthorType, page: int = 1):
+    return {"Book Name": book_name, "Author": author, "Page": page}
+
+# ^[A-Za-z]+$ → only alphabet letters allowed.
+
+# Example:
+# /route5/HarryPotter/Rowling?page=2 ✅
+# /route5/HarryPotter/Rowling7 ❌
+
+# ⚠️ In Pydantic v2, use pattern= instead of regex=.
+
+
+Summary of Rules
+-------------------
+- Path Params = Required → Must appear in {} in route.
+- Query Params = Optional → Appear after ? in URL.
+- Decorators (@app.get, etc.) connect routes to functions.
+- Return Values auto-converted to JSON.
+- Any Python dict, list, str, int is valid.
+- Validation is automatic with type hints.
+- Regex adds stricter validation.
+- Defaults allowed only in query params.
+
+
+Mistakes Made & Lessons
+--------------------------
+- Tried book_name: str = None in a path param → ❌ not allowed (path params are required).
+- Used regex= in Pydantic v2 → ❌ changed to pattern=.
+- Forgot to import constr from pydantic → NameError.
+- Pylance warning ("Call expression not allowed in type expression") when using constr → solved by using a type alias (AuthorType = constr(...)).
+
+
+✅ Do’s & ❌ Don’ts
+------------------
+✅ Do’s:
+- Do use path params for required fields.
+- Do use query params for optional fields.
+- Do test both Swagger UI (/docs) and Postman.
+- Do read validation error messages → they guide debugging.
+
+❌ Don’ts:
+- Don’t assign None defaults to path params.
+- Don’t use old Pydantic v1 syntax (regex=).
+- Don’t forget to import constr from pydantic.
+- Don’t commit your venv to Git.
+
+
+Folder 1 Wrap-up
+-------------------
+You now know how to:
+✔ Create a FastAPI app  
+✔ Add routes  
+✔ Use path & query params  
+✔ Apply type hints and validation  
+✔ Add regex constraints  
+✔ Debug common mistakes

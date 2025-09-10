@@ -33,7 +33,10 @@ is not possible.
 
 But if you want to handle 7->"7" more strictly and not allow it then you can do 3 ways:
 1. Use enum [most professional]: make an enum class of all possible values and use it.
-2. use Regex constraint  in the line:- color: constr(regex="^[A-Za-z]+$")
+
+2. use Regex constraint  in the line:- color: constr(regex="^[A-Za-z]+$") & add from pydantic import constr
+
+
 
 in new pydantic version regex keyword is updated by "pattern" - SUPPPPPER IMP
 
@@ -43,7 +46,8 @@ means that only letters are allowed in color.
 eg:shown in ep 5,6,7
 '''
 
-#Regex handling for author name
+#EP5
+#Regex handling for author name - cna be done for path param and query param both
 @app.get("/route5/{book_name}/{author}")
 def fn5 (book_name: str, author: constr(pattern="^[A-Za-z]+$"), page: int=1):
     return{"Book Name: ": book_name,
@@ -52,3 +56,23 @@ def fn5 (book_name: str, author: constr(pattern="^[A-Za-z]+$"), page: int=1):
            }
 
 
+'''
+To remove the yellow line warning (it is not error) from regex, add this line above the roots decorator 
+and then use the alias varible in func definition
+
+author_type= constr(pattern="^[A-Za-z]+$")
+
+@app.get...etc route5
+
+def fn5 (book_name: str, author: author_type, page: int=1):
+    return{"Book Name: ": book_name,
+           "Author: ": author,
+           "page: ": page
+           }
+
+'''
+
+'''
+If you want any param to be optional - make it query param
+if want it to be required field, make it path param
+Regex applicable for both'''
