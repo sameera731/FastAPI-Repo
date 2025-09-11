@@ -1,0 +1,9 @@
+For post methods to describe the format in which we expect data, we make classes from pydantic basemodel
+we made different types of models of user also . why?
+then without an official db, we simulate a fake/temp db by list, dict
+we made post method to send data from user to db and validate it and raise error handling/exceptions
+we made a utility fn of id assignment and uto incremented ready for next user
+then we made get method to fetch users and return in a response models
+returning in a response model is imp for validation
+
+revised some things of python like del and .get() method of dicts.
