@@ -40,7 +40,7 @@ def homefn():
 
 @app.get("/users/{userid}", response_model=User) #to get one user by their id
 def getOneUser(userid:int ):
-    user=users_db[userid]
+    user=users_db.get(userid)
     if not user:
         raise HTTPException(404, "user not found")
     return user
@@ -52,7 +52,7 @@ def getAllUsers():
 
 #for udpdate- 'put'
 @app.put("/users/{userid}", response_model=User)
-def updatefn(userid : int, user: User):
+def updatefn(userid : int, user: UserDesign):
     if userid not in users_db:
         raise HTTPException(404, "User not found")
     updated_user=User(id=userid, **user.model_dump())
