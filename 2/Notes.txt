@@ -1,0 +1,95 @@
+# Folder 2: CRUD with Fake Database — notes.txt
+
+------------------------------------------------------------
+Dependencies
+------------------------------------------------------------
+- Python 3.10+
+- FastAPI
+- Uvicorn
+- Pydantic
+
+Installed with:
+    pip install fastapi uvicorn
+
+------------------------------------------------------------
+Problem Statement
+------------------------------------------------------------
+Build a FastAPI app that supports CRUD operations (Create, Read, Update, Delete) on a "users" resource.  
+No real database is used — instead, we simulate one with an in-memory Python dictionary.
+
+------------------------------------------------------------
+Endpoints Implemented
+------------------------------------------------------------
+1. POST /users/
+   - Create a new user.
+   - Request body: JSON (name, email, age).
+   - Response: user object with id added.
+
+2. GET /users/{userid}
+   - Fetch a single user by id.
+   - Returns 404 if not found.
+
+3. GET /users/
+   - Fetch all users.
+   - Returns a list of all user objects.
+
+4. PUT /users/{userid}
+   - Update an existing user’s data.
+   - Request body: JSON (name, email, age).
+   - Response: updated user object.
+   - Returns 404 if not found.
+
+5. DELETE /users/{userid}
+   - Delete a user by id.
+   - Response: confirmation message.
+   - Returns 404 if not found.
+
+6. GET /
+   - Simple home route returning a welcome message.
+
+------------------------------------------------------------
+What I Learned
+------------------------------------------------------------
+- Difference between POST request bodies vs GET query/path params.
+- How Pydantic models validate request bodies.
+- Separation of concerns with models:
+  - UserCreate → data client sends.
+  - User → data stored/returned (includes id).
+- How to simulate a DB using a dictionary and ID counter.
+- CRUD workflow in API design.
+- Using HTTPException for proper error codes.
+- Safer dictionary access with .get() vs direct indexing.
+- Why PUT should not ask for id in body (use path param instead).
+
+------------------------------------------------------------
+Potential Mistakes Made
+------------------------------------------------------------
+- Defined User without inheriting fields from UserDesign → only id showed up.
+- Used User instead of UserCreate for PUT body → asked for id unnecessarily.
+- Passed duplicate id in update → "multiple values for keyword argument".
+- Used dict[userid] directly → KeyError caused 500 instead of 404.
+- Wrong route for delete (/users/userid instead of /users/{userid}).
+
+------------------------------------------------------------
+Do’s and Don’ts
+------------------------------------------------------------
+Do’s:
+- Do separate request models (UserCreate) from response models (User).
+- Do use dict.get() when fetching user input from dict.
+- Do raise HTTPException with appropriate status codes.
+- Do test endpoints with Swagger UI (/docs).
+
+Don’ts:
+- Don’t let clients send id in POST or PUT bodies.
+- Don’t return raw KeyErrors — always handle missing users cleanly.
+- Don’t mix positional and keyword arguments when creating Pydantic models.
+
+------------------------------------------------------------
+Personal Notes
+------------------------------------------------------------
+- Swagger UI is very useful for testing CRUD APIs quickly like post etc all at one place.
+- Always test for unsuccessful results and exception handling also by deliberately entering wrong infos not just successfull results.
+- Learned how POST bodies integrate with Pydantic models.
+- Realized importance of handling missing data gracefully.
+- This setup feels close to real database logic, but simpler.
+- Good preparation for moving into actual DB integration.

@@ -7,3 +7,180 @@ then we made get method to fetch users and return in a response models
 returning in a response model is imp for validation
 
 revised some things of python like del and .get() method of dicts.
+so we did all basic crud routes.
+
+___________________________________________________________________________________________________________
+# Folder 2: CRUD with Fake Database — process.txt
+
+------------------------------------------------------------
+1. Purpose of This Folder
+------------------------------------------------------------
+In this folder, we extended our FastAPI learning from basic routes (Folder 1) to implementing a simple "CRUD" application with a fake database in memory. CRUD means:
+- Create
+- Read
+- Update
+- Delete
+
+We simulated a database using a Python dictionary (`dict`) instead of connecting to a real DB. The main focus here was learning how FastAPI handles:
+- POST request bodies
+- Path parameters
+- Query parameters
+- Data validation with Pydantic models
+- Exception handling
+- The difference between dict[key] and dict.get()
+
+------------------------------------------------------------
+2. POST Requests and Request Bodies
+------------------------------------------------------------
+Unlike GET requests, where data is passed via path/query parameters, POST requests usually carry a "body" of data (typically JSON).
+
+Example:
+POST /users/
+Body:
+{
+  "name": "Alice",
+  "email": "alice@example.com",
+  "age": 30
+}
+
+FastAPI parses this JSON into a Pydantic model automatically if the endpoint function expects it.
+
+------------------------------------------------------------
+3. Pydantic Models and Design
+------------------------------------------------------------
+We created three Pydantic models to separate concerns:
+
+1. UserDesign
+   - A "blueprint" model with fields: name, email, age.
+   - Used as a base class for others.
+
+2. UserCreate
+   - Inherits from UserDesign.
+   - Used to represent the data the client must provide when creating a new user.
+
+3. User
+   - Inherits from UserDesign and adds the "id" field.
+   - Represents how the server stores and returns users.
+   - The id is added automatically by the server, not by the client.
+
+This separation avoids requiring clients to send "id" when creating a user.
+
+------------------------------------------------------------
+4. Fake Database
+------------------------------------------------------------
+We used:
+users_db: Dict[int, User] = {}
+next_id = 1
+
+- users_db is a dictionary where keys are integer IDs and values are User objects.
+- next_id is a global counter used to assign unique IDs.
+
+Utility function:
+def get_next_id():
+    global next_id
+    uid = next_id
+    next_id += 1
+    return uid
+
+This ensures each user gets a unique ID.
+
+------------------------------------------------------------
+5. CRUD Endpoints
+------------------------------------------------------------
+
+1. Create (POST /users/)
+- Takes a UserCreate object.
+- Generates a new ID.
+- Constructs a User object and stores it in users_db.
+- Returns the created User.
+
+2. Read One (GET /users/{userid})
+- Fetches a single user by ID.
+- If user not found, raises 404 error.
+
+3. Read All (GET /users/)
+- Returns a list of all User objects currently in the fake database.
+
+4. Update (PUT /users/{userid})
+- Takes a UserCreate object (user data without id).
+- If the user exists, updates their data with the given userid.
+- If not found, raises 404.
+
+5. Delete (DELETE /users/{userid})
+- Deletes a user by ID.
+- If user not found, raises 404.
+
+------------------------------------------------------------
+6. Exception Handling
+------------------------------------------------------------
+We used FastAPI's HTTPException to return proper HTTP status codes.
+
+Example:
+if not user:
+    raise HTTPException(status_code=404, detail="User not found")
+
+This prevents server crashes and ensures API clients receive meaningful error responses.
+
+------------------------------------------------------------
+7. dict[key] vs dict.get(key)
+------------------------------------------------------------
+We learned the difference:
+
+- dict[key]:
+   - Raises KeyError if the key does not exist.
+   - Useful if you are sure the key exists.
+
+- dict.get(key):
+   - Returns None if the key does not exist.
+   - Useful when handling uncertain input (e.g., user-provided IDs).
+   - Prevents crashes and allows clean error handling with HTTPException.
+
+In API design, .get() is usually safer when dealing with user input.
+
+------------------------------------------------------------
+8. Errors and Fixes During Development
+------------------------------------------------------------
+1. Only "id" showed in results:
+   - Initially User class did not inherit from UserDesign, so name, email, age were missing.
+   - Fixed by making User(UserDesign) with an additional id field.
+
+2. PUT asking for "id" in body:
+   - Because we mistakenly defined the request body type as User instead of UserCreate.
+   - Fixed by changing the function signature to take UserCreate, and then constructing User with the provided userid.
+
+3. Multiple values for "id" in update function:
+   - Happened when we passed both positional id and keyword id.
+   - Fixed by using only keyword argument:
+     updated_user = User(id=userid, **user.model_dump())
+
+4. Internal Server Error instead of 404:
+   - Caused by dict[userid] raising KeyError when the user did not exist.
+   - Fixed by using dict.get(userid) and checking if None.
+
+5. Wrong delete route:
+   - Used @app.delete("/users/userid") instead of @app.delete("/users/{userid}").
+   - Corrected to accept dynamic path parameter.
+
+------------------------------------------------------------
+9. What We Learned
+------------------------------------------------------------
+- How to define POST endpoints with request bodies using Pydantic models.
+- How to separate input models (UserCreate) from output models (User).
+- How to simulate a database with Python dictionaries.
+- How to handle missing keys gracefully using dict.get().
+- How to use HTTPException for proper error codes instead of crashing.
+- CRUD workflow: Create, Read, Update, Delete.
+- Importance of separating API request validation from DB storage design.
+
+------------------------------------------------------------
+10. Summary
+------------------------------------------------------------
+Folder 2 built a fully functional CRUD API using FastAPI with:
+- Pydantic models for validation and schema management.
+- A fake in-memory database.
+- Proper error handling and safe dictionary access.
+- Clean separation of Create vs Return models.
+- Awareness of common mistakes and debugging process.
+
+This forms the foundation for moving towards using a real database (like SQLite or PostgreSQL) in future folders, while already applying best practices in API design.
+
