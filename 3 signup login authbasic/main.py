@@ -24,9 +24,36 @@ users_db: Dict[str, UserLoginStore]={} #fake db
 #now we will make two fns(that we will need and use in signup and login POST routes) for signup (pwd hashing) and login(pwd verify) by using
 #inbuilt methods of passlib bcrypt for pwd hashing and verify
 
+#fns
+def hash_Password(password: str)->str:
+    return pwd_context.hash(password)
+
+def verify_Password(plain_password: str, hashed_password)->bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+#signup route
 @app.post("/signup/")
-def signup(usermodel: UserSignup):
-    pass
+def signup(user: UserSignup):
+    if user.username in users_db:
+        raise HTTPException(400,"username already exists")
+    hashed_pw=hash_Password(user.password)
+    new_user=UserLoginStore(username=user.username, hashed_password=hashed_pw)
+    users_db[user.username]=new_user
+    return {"message": "User created successfully"}
+
+#login route
+@app.post("/login/")
+def login(user:UserSignup):
+    db_user=users_db.get(user.username)
+    if not db_user:
+        raise HTTPException(401, "Invalid username or password.")
+    if not verify_Password(user.password,db_user.hashed_password):
+        raise HTTPException(401, "Password incorrect. Enter again")
+    return {"message: ": f"Login successful\n Welcome back {user.username}"}
+
+
+
+
 
 
 
