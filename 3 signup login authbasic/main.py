@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from passlib import CryptContext
+from passlib.context import CryptContext
 from typing import Dict
 
 app= FastAPI()
