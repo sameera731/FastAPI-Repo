@@ -1,0 +1,87 @@
+# Folder 3: Signup and Login with Password Hashing — notes.txt
+
+------------------------------------------------------------
+Dependencies
+------------------------------------------------------------
+- Python 3.10+
+- FastAPI
+- Uvicorn
+- Pydantic
+- Passlib (with bcrypt)
+
+Installed with:
+    pip install fastapi uvicorn passlib[bcrypt]
+
+------------------------------------------------------------
+Problem Statement
+------------------------------------------------------------
+Build a FastAPI app with basic authentication functionality:
+- Allow users to **sign up** with a username and password.
+- Store user data securely by hashing passwords before saving.
+- Allow users to **log in** by verifying entered credentials against stored ones.
+- No real database used — instead, simulate with an in-memory dictionary.
+
+------------------------------------------------------------
+Endpoints Implemented
+------------------------------------------------------------
+1. POST /signup/
+   - Create a new user.
+   - Request body: JSON (username, password).
+   - Response: success message.
+   - If username already exists → 400 error.
+
+2. POST /login/
+   - Authenticate a user.
+   - Request body: JSON (username, password).
+   - Verifies password against stored bcrypt hash.
+   - Response: success message with username.
+   - If invalid → 401 error.
+
+------------------------------------------------------------
+What I Learned
+------------------------------------------------------------
+- Why passwords must be hashed (never stored in plain text).
+- How to use Passlib’s CryptContext for hashing and verification.
+- Bcrypt as a secure hashing algorithm (salted, slow by design).
+- The difference between request models and storage models:
+  - UserSignup → data client sends (plain password).
+  - UserLoginStore → data stored internally (hashed password).
+- How to define utility functions for password handling:
+  - hash_Password → for signup.
+  - verify_Password → for login.
+- Using dict.get() for safe lookups in fake DB.
+- Correct use of HTTPException for authentication failures.
+- ->str is way of showing return type of a function in python
+
+------------------------------------------------------------
+Potential Mistakes Made
+------------------------------------------------------------
+- Tried to define users_db without specifying key type:
+  Dict[UserLoginStore] → ❌ invalid.
+  Correct: Dict[str, UserLoginStore].
+- Confused encryption vs hashing (hashing is one-way, cannot decrypt).
+- Thought bcrypt always produces same hash — but it is salted so the same password produces different hashes each time.
+- Initially unclear why separate models needed — clarified that plain passwords must never be stored.
+
+------------------------------------------------------------
+Do’s and Don’ts
+------------------------------------------------------------
+Do’s:
+- Do hash passwords before saving them.
+- Do use verify() from CryptContext to check logins.
+- Do separate input (plain) models from storage (hashed) models.
+- Do raise HTTPException with proper status codes (400, 401).
+
+Don’ts:
+- Don’t store plain text passwords.
+- Don’t use direct dict indexing for lookups → use .get() to avoid KeyErrors.
+- Don’t expose hashed passwords in responses.
+- Don’t assume bcrypt hashes are deterministic — expect different results for the same password.
+
+------------------------------------------------------------
+Personal Notes
+------------------------------------------------------------
+- authentication is more than just storing a password. its hashing, storing, comparison and future scalibility
+- Bcrypt makes brute-force attacks harder by being slow and salted.
+- POST endpoints cant be tested like get from url, you have to test on swagger ui. 
+- Good foundation before moving into tokens (JWT) and session management in later projects.

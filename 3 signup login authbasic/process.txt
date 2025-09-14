@@ -1,0 +1,167 @@
+------------------------------------------------------------
+Folder 3: Signup and Login with Password Hashing — process.txt
+------------------------------------------------------------
+
+1. Purpose of This Folder
+------------------------------------------------------------
+In this folder, the focus shifted from CRUD operations (Folder 2) to implementing a simple user authentication flow.
+
+The goals were:
+- To allow users to **sign up** with a username and password.
+- To securely store the password using hashing (not plain text).
+- To allow users to **log in** by verifying the entered password against the stored hashed password.
+- To simulate storage using a Python dictionary instead of a real database.
+
+This provided an introduction to authentication concepts and password security in FastAPI.
+
+
+2. Dependencies
+------------------------------------------------------------
+- fastapi
+- uvicorn
+- passlib[bcrypt]
+
+Passlib was introduced specifically to handle password hashing and verification.
+Installed with:
+
+    pip install passlib[bcrypt]
+
+
+3. Password Hashing Context
+------------------------------------------------------------
+Password hashing was implemented using Passlib’s `CryptContext`.
+
+Code snippet:
+
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+Key points:
+- schemes=["bcrypt"]: specifies the hashing algorithm. Bcrypt is widely used and considered secure for password storage.
+- deprecated="auto": ensures older schemes can be recognized but prefers bcrypt.
+- pwd_context is simply a variable name (identifier). It could be named anything.
+
+Utility functions created:
+
+    def hash_Password(password: str) -> str:
+        return pwd_context.hash(password)
+
+    def verify_Password(plain_password: str, hashed_password: str) -> bool:
+        return pwd_context.verify(plain_password, hashed_password)
+
+- hash_Password: takes a plain password and returns its bcrypt hash.
+- verify_Password: compares a plain password against a hashed password and returns a boolean (True if they match).
+
+
+4. Pydantic Models
+------------------------------------------------------------
+Two models were defined to separate input and storage responsibilities:
+
+- UserSignup
+  Fields: username, password
+  Represents the data that a client sends during signup or login.
+
+- UserLoginStore
+  Fields: username, hashed_password
+  Represents how user data is stored in the in-memory database.
+
+This separation avoids storing plain text passwords and ensures consistent validation.
+
+
+5. Fake Database
+------------------------------------------------------------
+A dictionary was used to simulate a database:
+
+    users_db: Dict[str, UserLoginStore] = {}
+
+- Keys: username (string)
+- Values: UserLoginStore objects
+
+This allowed quick lookups by username during login.
+
+
+6. Signup Endpoint
+------------------------------------------------------------
+Route:
+
+    @app.post("/signup/")
+
+Steps:
+- Check if the username already exists in users_db.
+- If it exists, raise HTTPException(400, "username already exists").
+- Hash the password with hash_Password.
+- Create a UserLoginStore object containing the username and hashed password.
+- Store it in users_db.
+- Return a success message.
+
+This endpoint ensures unique usernames and securely stores hashed passwords.
+
+
+7. Login Endpoint
+------------------------------------------------------------
+Route:
+
+    @app.post("/login/")
+
+Steps:
+- Look up the username in users_db using .get().
+- If the username does not exist, raise HTTPException(401, "Invalid username or password.").
+- Use verify_Password to compare the plain password with the stored hash.
+- If the comparison fails, raise HTTPException(401, "Password incorrect. Enter again").
+- If successful, return a success message with the username.
+
+This endpoint validates credentials without ever exposing or comparing plain text passwords directly.
+
+
+8. Exception Handling
+------------------------------------------------------------
+Used FastAPI’s HTTPException to return proper HTTP status codes:
+
+- 400 → when attempting to register with an existing username.
+- 401 → when login fails (invalid username or password).
+
+This ensures predictable and meaningful error responses to clients instead of server crashes.
+
+
+9. Errors and Fixes During Development
+------------------------------------------------------------
+- Misunderstanding of dict typing:
+  
+    Attempted: users_db: Dict[UserLoginStore] = {}
+  
+    Correct form: Dict[str, UserLoginStore] = {}
+
+    Explanation: dictionaries need both key and value types.
+
+- Clarification on bcrypt:
+
+    Bcrypt is the chosen hashing algorithm in Passlib.
+    It generates a salted hash, meaning each password gets a unique result
+    even if the same password is used by two users.
+
+- Clarification on .get():
+
+    Using users_db.get(username) prevents KeyError if the user is missing.
+    Allowed clean error handling with HTTPException.
+
+
+10. What Was Learned
+------------------------------------------------------------
+- How password hashing differs from encryption.
+- How to use Passlib’s CryptContext to hash and verify passwords.
+- How to separate input models (UserSignup) from storage models (UserLoginStore).
+- Why dictionaries need explicit key/value typing.
+- Why storing plain text passwords is insecure.
+- How to return proper HTTP error codes for invalid inputs.
+
+
+11. Summary
+------------------------------------------------------------
+Folder 3 implemented a simple signup and login system in FastAPI with:
+
+- Secure password hashing using bcrypt via Passlib.
+- Clear separation of models for input vs storage.
+- An in-memory dictionary simulating user storage.
+- Proper error handling and HTTP codes.
+
+This lays the groundwork for adding authentication features such as JWT tokens
+or OAuth in later projects, while demonstrating the fundamentals of secure password handling.
