@@ -79,6 +79,36 @@ def read_todo(todo_id:int , db: Session=Depends(get_db)):
         raise HTTPException(404, "Not found")
     return fetched_todo
 
+@app.patch("/todos/{todo_id}", response_model=TodoUpdate)
+def update_todo_partial(todo_id: int, todo_update: TodoUpdate, db: Session=Depends(get_db)):
+    fetched_todo=db.query(Todo).filter(Todo.id==todo_id).first()
+    if not fetched_todo:
+        raise HTTPException(404, "Not found")
+    update_data=todo_update.model_dump(exclude_unset=True) #this is just a dict. we converted to normal dict here
+    for key, value in update_data.items():
+        setattr(fetched_todo, key, value)
+    try:
+        db.commit()
+        db.refresh(fetched_todo)
+    except Exception:
+        db.rollback()
+        raise
+    return fetched_todo
+
+
+@app.delete("/todos/{todo_id}")
+def delete_todo(todo_id: int, db: Session=Depends(get_db)):
+    fetched_todo=db.query(Todo).filter(Todo.id==todo_id).first()
+    if not fetched_todo:
+        raise HTTPException(404, "Not found")
+    try:
+        db.delete(fetched_todo)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    return {"message: ": "Todo deleted"}
+
 
 
 
