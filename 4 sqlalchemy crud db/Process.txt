@@ -1,0 +1,3 @@
+what if jsut db.query(Todo).all() in read all todos fn, is the limit skip etc mandatory?
+what if i write list instead of List in read all todos fn
+
