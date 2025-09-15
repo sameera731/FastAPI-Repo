@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base, Session
 DATABASE_URL="sqlite:///./todos.db" #location of db file 
 engine= create_engine(DATABASE_URL, connect_args={"check_same_thread": False}) #check same thread ONLY FOR SQLITE DBS
 SessionLocal= sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base=declarative_base #base model from which all tables models inherit for db NOT SAME AS PYDANTIC! this is from sqlalchemy
+Base=declarative_base() #base model from which all tables models inherit for db NOT SAME AS PYDANTIC! this is from sqlalchemy
 
 #create the ORM MODEL : this is NOT A PYDANTIC MODEL AND NOT FOR POST GET METHODS ITS FOR DB
 #this is basically defining the SCHEMA of the table 'Todo'. its just a blueprint for the table
@@ -48,7 +48,7 @@ class TodoResponse(BaseModel):
     description: Optional[str]
     completed: bool
     class Config:
-        orm_mode = True              #SUPER IMP
+        from_attributes = True              #SUPER IMP   (i.e orm_mode)
 
 #___________________________________________schema work done_________________________________
 
