@@ -1,3 +1,129 @@
 what if jsut db.query(Todo).all() in read all todos fn, is the limit skip etc mandatory?
 what if i write list instead of List in read all todos fn
+why patch for update? why not put?
+also what does db:session=depends(get_db)do? so we use it in every single route? any type?
 
+
+------------------------------------------------------------
+Folder 4: CRUD with SQLAlchemy ORM — FULL PROCESS LOG
+------------------------------------------------------------
+
+1. Initial Aim
+------------------------------------------------------------
+- Move from the simple in-memory CRUD of previous folders to a real database.
+- Use SQLAlchemy ORM (Object Relational Mapper) with FastAPI.
+- Store tasks (“todos”) in a SQLite file.
+- Learn how to define tables, create sessions, and hook them into FastAPI endpoints.
+
+2. Installing and Recording Dependencies
+------------------------------------------------------------
+- Initially only had FastAPI and uvicorn.
+- Installed SQLAlchemy with pip.
+- Learned that you also need Pydantic v2 schemas for request/response models.
+- Added everything to requirements.txt:
+  fastapi, uvicorn, sqlalchemy, plus previous packages like pandas, matplotlib etc.
+- Noted that you can regenerate requirements.txt with `pip freeze > requirements.txt`.
+- Learned that requirements.txt needs to be staged with `git add` to be pushed.
+
+3. ORM Model vs Pydantic Model
+------------------------------------------------------------
+- Taught that ORM classes (class Todo(Base)) define your DB table.
+- Pydantic classes (TodoCreate, TodoUpdate, TodoResponse) define what your API receives/returns.
+- They must be kept separate because ORM objects aren’t JSON serializable.
+- Pydantic v2 uses `from_attributes = True` instead of `orm_mode = True` to read ORM objects.
+
+4. Database Engine, Session, Base
+------------------------------------------------------------
+- Set `DATABASE_URL = "sqlite:///./todos.db"`.
+- Explained `check_same_thread=False` for SQLite when used in FastAPI.
+- Created engine with `create_engine(...)`.
+- Created `SessionLocal = sessionmaker(...)`.
+- Created `Base = declarative_base()`.
+- Called `Base.metadata.create_all(bind=engine)` to create tables on first run.
+
+5. FastAPI Dependency Injection for DB Session
+------------------------------------------------------------
+- Defined `get_db()` to yield a session and close it after use.
+- Used `Depends(get_db)` in each route to get a fresh session per request.
+- Explained why this pattern prevents connection leaks.
+
+6. CRUD Endpoints Built
+------------------------------------------------------------
+- POST /todos/ — Create new todo.
+- GET /todos/ — List all todos with optional skip/limit.
+- GET /todos/{id} — Get one todo by ID.
+- PATCH /todos/{id} — Partial update using `exclude_unset=True`.
+- DELETE /todos/{id} — Delete a todo.
+
+--------------------------------------------------------------
+7. Using SQLAlchemy ORM for DB Operations in FastAPI
+------------------------------------------------------------
+
+- db: Session = Depends(get_db) — gets a DB session.
+- db.add(), db.commit() — save to DB.
+- db.refresh() — populate auto-generated fields (like id).
+i.e
+
+- db.query(Model).all() returns all rows.
+- filter(...) adds a WHERE clause.
+- first() returns first matching record (or None).
+- add() stages a new record for insert.
+- commit() finalizes changes.
+- refresh() updates the object with DB-generated values (e.g., auto ID).
+- rollback() undoes changes if there’s an error.
+- Always handle DB commits inside try/except to maintain DB integrity.
+---------------------------------------------------------------------
+
+8. Partial Updates
+------------------------------------------------------------
+- Showed how `TodoUpdate` has all fields optional.
+- In route: `update_data = todo.dict(exclude_unset=True)`.
+- Only updates provided fields, leaving the rest unchanged.
+- Avoids accidentally overwriting columns with None.
+
+9. Transactions and Rollbacks
+------------------------------------------------------------
+- Demonstrated wrapping `db.commit()` in try/except.
+- On exception call `db.rollback()` to keep DB consistent.
+- Use `db.refresh(obj)` to load updated values after commit.
+
+10. Pagination (skip, limit)
+------------------------------------------------------------
+- Showed how `.offset(skip).limit(limit).all()` works for pagination.
+- Explained that `.all()` without offset/limit just returns everything.
+
+11. Type Hints in response_model
+------------------------------------------------------------
+- Learned that `response_model=list` works, but `List[TodoResponse]` is clearer.
+- FastAPI automatically serializes a list of ORM objects to JSON if Pydantic schema has `from_attributes`.
+
+12. SQLite Specifics
+------------------------------------------------------------
+- Clarified that even though SQLite stores everything in a single file, it is still a relational database with tables/columns.
+- We still must define our schema with SQLAlchemy and call `create_all`.
+
+13. Key Lessons Recapped
+------------------------------------------------------------
+- SQLAlchemy is an ORM; “SQLAlchemy ORM” and “OR ORM” are not two different things.
+- Separate ORM models from Pydantic schemas to keep code clean and serializable.
+- Use Depends to manage DB sessions in FastAPI.
+- Use `exclude_unset=True` for PATCH endpoints to avoid overwriting data.
+- Always commit inside try/except and rollback on error.
+- SQLite can easily be swapped out for Postgres/MySQL later.
+- requirements.txt needs manual `git add` if new or changed.
+
+14. Personal Takeaways
+------------------------------------------------------------
+- This folder was a big jump from memory-based storage to persistent DB.
+- Learned industry-standard ORM patterns that work beyond SQLite.
+- Understood how FastAPI dependencies manage per-request resources.
+- Gained clarity on Git staging/committing process for updated files.
+
+15. Summary of Folder 4 Outcome
+------------------------------------------------------------
+At the end of Folder 4:
+- We have a fully working FastAPI CRUD app backed by SQLAlchemy ORM and SQLite.
+- Endpoints handle create/read/update/delete.
+- Data persists between runs.
+- requirements.txt correctly reflects new dependencies.
+- The whole stack is ready for deployment or extension (e.g., authentication).

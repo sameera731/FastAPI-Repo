@@ -36,11 +36,11 @@ def get_db():
 class TodoCreate(BaseModel):
     title: str
     description: Optional[str]=None
-
+    
 class TodoUpdate(BaseModel):
-    title: Optional[str]
+    title: Optional[str]=None
     description: Optional[str]=None
-    completed: Optional[bool]=False
+    completed: Optional[bool]=None
 
 class TodoResponse(BaseModel):
     id: int
@@ -68,9 +68,9 @@ def create_todo(todo: TodoCreate, db: Session= Depends(get_db)):  #Depends is ke
         raise
     return db_todo
 
-@app.get("/todos/", response_model=List[TodoResponse])            #? what if i write list instead of List
+@app.get("/todos/", response_model=List[TodoResponse])           
 def read_todos(skip:int =0, limit: int=100, db: Session=Depends(get_db)):
-    return db.query(Todo).offset(skip).limit(limit).all()          #?  what if jsut db.query(Todo).all()
+    return db.query(Todo).offset(skip).limit(limit).all()          
 
 @app.get("/todos/{todo_id}", response_model=TodoResponse)
 def read_todo(todo_id:int , db: Session=Depends(get_db)):

@@ -1,0 +1,146 @@
+
+# Folder 4: CRUD with SQLAlchemy ORM — notes.txt
+
+------------------------------------------------------------
+Dependencies
+------------------------------------------------------------
+- Python 3.10+
+- FastAPI
+- Uvicorn
+- SQLAlchemy (2.x)
+- Pydantic
+
+Installed with:
+    pip install fastapi uvicorn sqlalchemy
+
+SQLite is used as the underlying database.
+
+------------------------------------------------------------
+Problem Statement
+------------------------------------------------------------
+Build a FastAPI app that performs full CRUD on a “Todo” resource,
+but this time using a **real database** via SQLAlchemy ORM instead
+of an in-memory dictionary.
+
+Key goals:
+- Understand ORM models vs Pydantic schemas.
+- Persist data to a SQLite file (todos.db).
+- Support create, read, update (partial), and delete operations.
+
+------------------------------------------------------------
+ORM Model vs Pydantic Model
+------------------------------------------------------------
+- **ORM model (class Todo)**:
+  - Inherits from Base (SQLAlchemy’s declarative_base()).
+  - Defines the table schema: columns, types, constraints.
+  - Used internally by SQLAlchemy to map rows <-> Python objects.
+
+- **Pydantic models (TodoCreate, TodoUpdate, TodoResponse)**:
+  - Define what the client sends and what the API returns.
+  - Enforce validation and serialization.
+  - Completely separate from ORM model.
+
+This separation is essential because ORM objects are not automatically JSON-serializable.
+
+------------------------------------------------------------
+Database Setup
+------------------------------------------------------------
+- `DATABASE_URL = "sqlite:///./todos.db"` stores data in a local file.
+- `engine = create_engine(...)` creates a DB connection.
+- `SessionLocal = sessionmaker(...)` creates DB sessions.
+- `Base = declarative_base()` is the parent for all ORM models.
+- `Base.metadata.create_all(bind=engine)` creates the tables on first run.
+
+`check_same_thread=False` is **only needed for SQLite** to allow sessions across threads (FastAPI creates multiple).
+
+------------------------------------------------------------
+FastAPI Dependency for DB Session
+------------------------------------------------------------
+The `get_db()` function yields a Session object to each request:
+
+```python
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+----------------------------------------------------------
+
+Endpoints Implemented
+-----------------------------------------------------------
+
+- POST /todos/ — Create Todo
+     - Body: TodoCreate (title, description)
+     - Stores new record in DB, commits transaction, returns TodoResponse.
+
+- GET /todos/ — Read All Todos
+     - Optional skip & limit query parameters.
+     - Returns a list of TodoResponse.
+
+- GET /todos/{id} — Read One Todo
+
+     - Path param: todo_id.
+     - Fetches one row by ID or 404 if not found.
+
+- PATCH /todos/{id} — Partial Update
+
+     - Body: TodoUpdate (any field optional).
+     - Updates only provided fields using model_dump(exclude_unset=True).
+     - Commits and refreshes the object.
+
+- DELETE /todos/{id} — Delete Todo
+
+     - Deletes record and commits transaction.
+     - Returns success message.
+
+What I Learned
+
+- SQLAlchemy ORM lets you define tables as Python classes, eliminating hand-written SQL for CRUD.
+- SQLite is a file-based database but still uses tables and schema like any SQL DB.
+- Depends() is how FastAPI injects per-request DB sessions.
+- Pydantic v2 uses from_attributes = True instead of orm_mode = True.
+- Partial updates require exclude_unset=True to avoid overwriting unspecified fields.
+- session.commit() is wrapped in try/except with rollback() to avoid leaving DB in inconsistent state.
+--------------------------------------------------------------------------------------
+
+Potential Mistakes Made
+----------------------------------------------------------------------------------------
+
+- Thought “SQLAlchemy ORM” vs “OR ORM” were two different things → they’re the same. SQLAlchemy is the ORM here.
+
+- Wondered why tables are needed in SQLite → even though SQLite stores data in one file, it’s still a relational DB with tables/columns.
+
+- Forgot to install SQLAlchemy at first.
+
+- Unsure about using list vs List[TodoResponse] in response_model:
+     - FastAPI accepts both, but List[...] gives proper typing hints.
+
+- Unsure about db.query(Todo).offset(skip).limit(limit).all():
+     - You can do .all() directly to fetch all rows; skip/limit are for pagination.
+
+- Initially forgot from_attributes = True in TodoResponse (needed for Pydantic v2).
+---------------------------------------------------------------------------------------------
+
+Do’s and Don’ts
+
+✅ Do’s:
+
+Do separate ORM models from Pydantic schemas.
+Do always close DB sessions via dependency injection.
+Do wrap commits in try/except and rollback on error.
+Do use exclude_unset=True for PATCH operations.
+
+❌ Don’ts:
+
+Don’t mix Pydantic and ORM classes.
+Don’t forget check_same_thread=False when using SQLite with FastAPI.
+Don’t return raw ORM objects without enabling from_attributes.
+------------------------------------------------------------------------------------------
+
+Personal Notes
+
+SQLite is great for local testing. Later you can swap DATABASE_URL to PostgreSQL or MySQL with zero changes to ORM code.
+SQLAlchemy is an industry-standard ORM; learning it now makes migrating to big DBs easier.
+Understanding sessions and transactions is key for real apps.
